@@ -1,0 +1,100 @@
+datasets:
+  - MVTec AD
+  - MVTec AD 2
+  - VisA
+  - BTAD
+  - MVTec LOCO AD
+  - MVTec 3D-AD
+  - MPDD
+  - KolektorSDD2
+  - Real-IAD
+  - DAGM
+
+baselines:
+  - PatchCore
+  - PaDiM
+  - FastFlow
+  - PyramidFlow
+  - DRAEM
+  - Reverse Distillation
+  - WinCLIP
+  - AnomalyCLIP
+  - AA-CLIP
+  - RealNet
+  - Diffusion-based AD
+  - AnomalyGPT
+  - MLLM-based AD
+  - UniVAD
+  - Dinomaly
+  - iCAS
+
+ablations:
+  full:
+    description: Full NOST-DiffAD.
+  no_score_diffusion:
+    diffusion_disabled: true
+    energy.alpha: 0.0
+    description: No score diffusion, prototype only for score term.
+  no_patch_graph:
+    graph.use_patch_graph: false
+    graph.beta_s: 0.0
+    graph.beta_p: 0.0
+    graph.beta_m: 0.0
+    energy.gamma: 0.0
+    description: Independent patches without graph structure.
+  no_sam2_mask_topology:
+    graph.use_mask_topology: false
+    graph.beta_m: 0.0
+    description: Remove SAM/SAM2 mask topology term.
+  no_wavelet_residual:
+    energy.eta: 0.0
+    model.wave_dim: 0
+    description: Remove wavelet residual branch.
+  no_nmf:
+    loss.lambda_nmf: 0.0
+    description: Remove NMF interpretability constraint.
+  no_conformal_threshold:
+    conformal_disabled: true
+    description: Report raw scores without conformal thresholding.
+  dinov2_features:
+    model.feature_extractor: dinov2_torchhub
+    model.hf_model: facebook/dinov2-small
+    model.torchhub_model: dinov2_vits14
+    model.torchhub_repo_or_dir: facebookresearch/dinov2
+    model.torchhub_source: github
+  clip_features:
+    model.feature_extractor: clip
+    model.hf_model: openai/clip-vit-base-patch16
+    model.patch_size: 16
+    model.feature_dim: 768
+  sam2_features:
+    model.feature_extractor: sam2
+    description: Requires model.sam2_config and model.sam2_checkpoint.
+
+few_shot:
+  - 1
+  - 2
+  - 4
+  - 8
+  - 16
+  - full
+
+robustness:
+  - none
+  - brightness
+  - gaussian_noise
+  - jpeg_compression
+
+metrics:
+  - Image AUROC
+  - Image AP
+  - Pixel AUROC
+  - Pixel AP
+  - AU-PRO
+  - F1-max
+  - IoU
+  - Dice
+  - Calibration error
+  - Inference speed
+  - Few-shot sample efficiency
+  - Cross-category generalization

@@ -1,0 +1,130 @@
+seed: 42
+device: cuda
+num_workers: 4
+amp: true
+
+data:
+  dataset: mvtec
+  root: datasets/mvtec_ad
+  category: null
+  image_size: 224
+  val_split: 0.15
+  few_shot: full
+  mask_suffix: .png
+  part_mask_root: datasets/part_masks/sam_vit_b_mvtec_ad
+  part_mask_suffix: .png
+  mask_resize_mode: nearest
+  robustness: none
+  test_split_fraction: 1.0
+  test_split_role: all
+  test_split_seed: 42
+
+model:
+  feature_extractor: dinov2_torchhub
+  hf_model: facebook/dinov2-small
+  torchhub_model: dinov2_vits14
+  torchhub_repo_or_dir: facebookresearch/dinov2
+  torchhub_source: github
+  intermediate_layers: 1
+  intermediate_aggregation: last
+  sam2_config: null
+  sam2_checkpoint: null
+  patch_size: 14
+  feature_dim: 384
+  wave_dim: 9
+  hidden_dim: 256
+  graph_layers: 2
+  score_layers: 3
+  num_classes: 128
+  num_prototypes: 16
+  nmf_rank: 8
+  time_dim: 128
+  train_feature_extractor: false
+
+graph:
+  beta_s: 1.0
+  beta_p: 1.0
+  beta_m: 1.0
+  sigma_p: 0.15
+  use_patch_graph: true
+  use_mask_topology: true
+
+diffusion:
+  timesteps: 1000
+  beta_start: 0.0001
+  beta_end: 0.02
+  t_min: 50
+  t_max: 950
+  energy_steps: 8
+
+loss:
+  lambda_nmf: 0.01
+  lambda_lap: 0.001
+  lambda_proto: 0.1
+  lambda_cons: 0.0
+  lambda_u: 0.0001
+  lambda_v: 0.0001
+
+energy:
+  alpha: 1.0
+  beta: 1.0
+  gamma: 0.5
+  eta: 0.5
+  topk_ratio: 0.05
+  upsample_mode: bilinear
+  conformal_alpha: 0.05
+
+train:
+  epochs: 300
+  batch_size: 4
+  lr: 0.0001
+  weight_decay: 0.00001
+  grad_clip_norm: 1.0
+  log_every: 20
+  save_dir: outputs/checkpoints
+  resume: false
+  early_stopping:
+    enabled: true
+    monitor: selection_score
+    mode: max
+    patience: 30
+    min_delta: 0.0005
+    min_epochs: 50
+
+eval:
+  checkpoint: null
+  result_dir: outputs/results
+  apply_foreground_mask: false
+  score_map_enhancement: none
+  local_contrast_kernel: 15
+  score_map_smoothing_kernel: 0
+  score_map_normalization: none
+  score_map_normalization_eps: 0.000001
+  score_map_robust_q: 0.995
+  image_score_from_postprocessed_map: false
+  postprocessed_image_score_mode: map_topk
+  score_map_calibration:
+    enabled: false
+    mode: spatial_quantile
+    quantile: 0.9
+    min_scale: 0.000001
+    clamp_min: true
+    power: 1.0
+    post_normalization: none
+  feature_memory:
+    enabled: false
+    feature: z
+    fusion: replace
+    weight: 1.0
+    k: 1
+    max_patches: 20000
+    chunk_size: 1024
+    normalize: true
+    normalize_maps: true
+    sampling_strategy: random
+    local_context_kernel: 0
+    local_context_aggregation: concat
+    spatial_weight: 0.0
+    map_power: 1.0
+    image_score_mode: patch_topk
+    seed: 42

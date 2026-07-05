@@ -1,0 +1,32 @@
+# Current State
+
+- Goal: continue NOST-DiffAD data processing, tuning, and formal training across all currently available datasets, using CUDA and parallelism without OOM.
+- Latest user intent: use as much parallelism/GPU memory as safe; tune first, then train with best parameters; do not change documented model formulas/architecture.
+- Data views prepared as symlink layouts:
+  - `datasets/mvtec_ad_2_mvtec`
+  - `datasets/mvtec_3d_rgb_mvtec`
+  - `datasets/realiad_1024_mvtec`
+- Dataset registry now includes `mvtec_ad`, `btad`, `kolektorsdd2`, `mpdd`, `mvtec_loco`, `mvtec_ad_2`, `mvtec_3d_rgb`, `realiad_1024`; VisA will join after extraction.
+- Code changes made:
+  - `src/nostdiffad/data.py`: mask lookup handles nested GT directories such as MVTec LOCO.
+  - `scripts/prepare_dataset_views.py`: creates symlink MVTec-style views for AD2, 3D RGB, and RealiAD.
+  - `scripts/run_downloaded_official_experiments.py`: registers newly available datasets.
+  - `scripts/tune_downloaded_datasets.py`: representative category selection expanded for new datasets.
+  - `scripts/run_parallel_hparam_tuning.py`: added `--trial-names` and `--datasets`.
+  - `scripts/start_formal_after_tuning.sh`: dynamically checks tuned configs for registered datasets.
+  - `README.md`: documents new view prep and all-dataset stage-1 tuning command.
+- Verification:
+  - `pytest tests -q`: 2 passed.
+  - Loader checks passed for MVTec LOCO, AD2 view, 3D RGB view, and RealiAD view; anomaly masks now match anomaly counts in sampled categories.
+  - `py_compile` passed for edited Python scripts/modules.
+- Active background jobs:
+  - `screen` session `hparam_all_stage1`: stage-1 tuning campaign.
+  - It is currently generating SAM masks before training. Last seen on `mpdd/bracket_black`, around `176/368` masks.
+  - Command log: `outputs/logs/hparam_all_datasets_stage1.log`.
+  - Per-trial logs will be under `outputs/logs/hparam_all_datasets_stage1_trials/`.
+  - Stage-1 task plan: 32 representative categories x 9 trials = 288 tuning tasks, `max_parallel=2`.
+  - `screen` session `visa_download`: VisA archive still downloading slowly from official S3.
+- Next step:
+  - Monitor `outputs/logs/hparam_all_datasets_stage1.log`.
+  - Once SAM mask generation finishes and training starts, watch GPU memory. If stable below about 18-20GB, consider increasing training parallelism; if OOM appears, restart with `--max-parallel 1`.
+  - After stage-1 completes, inspect `outputs/hparam_all_datasets_stage1/tuning_summary.json`, deepen search for weak datasets/categories, then run formal queue with best configs.
